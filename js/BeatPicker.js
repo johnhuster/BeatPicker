@@ -7,10 +7,10 @@ function BeatPicker(options) {
 BeatPicker.prototype = {
     dateInputNode: null,
     pickerNode: null,
-    daysSimple: ["Su" , "Mo" , "Tu" , "We" , "Th" , "Fr" , "Sa"],
+    daysSimple: ["日" , "一" , "二" , "三" , "四" , "五" , "六"],
     daysFull: [],
-    monthsSimple: ["Jan" , "Feb" , "Mar" , "Apr"  , "May" , "Jun" , "Jul" , "Aug" , "Sep" , "Oct" , "Nov" , "Dec"],
-    monthsFull: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    monthsSimple: ["一月" , "二月" , "三月" , "四月"  , "五月" , "六月" , "七月" , "八月" , "九月" , "十月" , "十一月" , "十二月"],
+    monthsFull: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
     startDate: new Date(),
     currentDate: new Date(),
     //["DD" , "MM" , "YYYY"]//["MM" , "DD" , "YYYY"]//["DD" , "NM" , "YYYY"]
@@ -360,8 +360,7 @@ BeatPicker.prototype = {
                     clickBehaviour !== "not-avail" && self._updateDateMatrices(clickBehaviour ? 1 : -1, self._monthUnit);
                 });
                 li.text(dayCheck.day);
-                this.selectionRule.single && this._findSelectedDate(this._dateRows[i].data("date"), this._dateRows[i])
-
+                this.selectionRule.single && this._findSelectedDate(this._dateRows[i].data("date"), this._dateRows[i]);
             }
             this._markToday(new Date());
             if (this.selectionRule.range)
@@ -603,6 +602,11 @@ BeatPicker.prototype = {
             this._selectedDateNode && this._removeClassFromSelectedDate(this._selectedDateNode);
             this._selectedDate = new Date(dateObj.getTime());
             this.dateInputNode.val(date);
+          //根据出生日期计算年龄
+            if(this.dateInputNode.attr("name") == 'customerbirthdays')
+            	$("#housecustomerage").val(jsGetAge(date));
+            if(this.dateInputNode.attr("name") == 'birthday')
+            	$("#customerAge").val(jsGetAge(date));
             this._selectedDateNode = elem;
             !this.view.alwaysVisible && this.hide();
             this._addClassToSelectedDate(this._selectedDateNode);
@@ -691,6 +695,9 @@ BeatPicker.prototype = {
                     this._startRangeSelectedDate && this._disableDates(this._startRangeSelectedDate, true);
             }
             for (var i in this._dateRows) {
+            	if(this._dateRows[i].data==undefined){
+            		continue;
+            	}
                 var objectDateInfo = this._bindDateToRows(+i, this._dateRows[i]);
                 this._dateRows[i].data("click-behaviour", objectDateInfo.isNextMonth);
                 $(this._dateRows[i]).text("").text(objectDateInfo.day);
@@ -718,6 +725,9 @@ BeatPicker.prototype = {
             date = date || this.currentDate;
             this._todayNode && this._todayNode.removeClass(this.className._inner.todayInGrid).removeClass(this.className.todayBox);
             for (var i in this._dateRows) {
+            	if(this._dateRows[i].data==undefined){
+            		continue;
+            	}
                 if (this._dateEqualsTo(this._dateRows[i].data("date"), date)) {
                     this._todayNode = this._dateRows[i];
                     $(this._dateRows[i]).addClass(this.className._inner.todayInGrid).addClass(this.className.todayBox);
@@ -734,7 +744,7 @@ BeatPicker.prototype = {
         }
 
     },
-    _bindDateToRows: function (day, dom) {
+    _bindDateToRows: function (day, dom) { 	
         var self = this;
         var date = new Date(this.currentDate.getTime());
         dom.removeClass(this.className._inner.notNotable);
@@ -812,6 +822,9 @@ BeatPicker.prototype = {
     _disableDates: function (compareDate, fromOrTo) {
         var rule = this._interpretRule(compareDate, compareDate);
         for (var i in this._dateRows) {
+        	if(this._dateRows[i].data==undefined){
+        		continue;
+        	}   	
             var elem = this._dateRows[i];
             var date = elem.data("date");
             this._removeDisableClass(elem);
@@ -825,6 +838,9 @@ BeatPicker.prototype = {
     },
     _backToNormalDisableRule: function () {
         for (var i in this._dateRows) {
+        	if(this._dateRows[i].data==undefined){
+        		continue;
+        	}    	
             var elemDate = this._dateRows[i].data("date");
             this._checkDisabling(elemDate, this._dateRows[i]);
         }
@@ -1225,6 +1241,9 @@ BeatPicker.prototype = {
     _addClassToRange: function (from, to) {
         if (from && to) var rule = this._interpretRule(from, to);
         for (var i in this._dateRows) {
+        	if(this._dateRows[i].data==undefined){
+        		continue;
+        	}     	
             var elem = $(this._dateRows[i]);
             var date = elem.data("date");
             this._removeClassFromSelectedDate(elem);
@@ -1247,9 +1266,12 @@ BeatPicker.prototype = {
         }
     },
     _removeClassFromRange: function () {
-        for (var i in this._dateRows)
-            this._dateRows[i].removeClass(this.className.betweenRange + " " + this.className._inner.betweenDateNode);
-
+        for (var i in this._dateRows){
+        	if(this._dateRows[i].data==undefined){
+        		continue;
+        	} 	
+			this._dateRows[i].removeClass(this.className.betweenRange + " " + this.className._inner.betweenDateNode);        	
+        }        
     },
     _notifySubscribers: function (topic, details) {
         var topicArray = this._topicMap[topic];
@@ -1327,9 +1349,13 @@ BeatPicker.prototype = {
             var dt = this._isDate(date) ? date : new Date(Date.parse(date));
             this._updateDateMatricesExactDate(dt , null , true);
             if (this._dateRows && this._dateRows.length)
-                for (var i in this._dateRows)
+                for (var i in this._dateRows){
+                	if(this._dateRows[i].data==undefined){
+            			continue;
+            		}
                     if (this._dateEqualsTo(this._dateRows[i].data("date") , dt))
-                        return this._dateRows[i].click();
+                        return this._dateRows[i].click();                	
+                }
         }
     },
     selectRangeOfDate: function (start, end) {
